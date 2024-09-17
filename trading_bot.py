@@ -42,33 +42,28 @@ class TradingBot:
         logging.basicConfig(filename='trading_bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
         
     def job(self):
-
         print("--------------------")
 
         is_open_positions = self.data_fetcher.get_open_positions(self.symbol)
-        # if len(is_open_positions) >= 2:
-        #     print("There are already two open positions. A new order will not be placed.")
-        #     return
         if is_open_positions:
             print("There is already an open position. A new order will not be placed.")
             return
-        
 
         is_open_orders = self.data_fetcher.get_open_orders(self.symbol)
         if is_open_orders:
             print("There is an open limit order. A new order will not be placed.")
             return
-        
+
         get_historical_data = self.data_fetcher.get_historical_data(self.symbol, self.interval, self.limit)
         if get_historical_data is None:
             print("Failed to retrieve historical data.")
             return
 
         df = self.strategy.prepare_dataframe(get_historical_data)
-        
-        trend = self.strategy.mean_reversion_strategy(df)
-        if trend:
 
+        # Получаем торговое решение ('long', 'short' или None)
+        trade_decision = self.strategy.determine_trend(df)
+        if trade_decision:
             last_closed_position = self.data_fetcher.get_last_closed_position(self.symbol)
             if last_closed_position:
                 last_closed_time = int(last_closed_position['updatedTime']) / 1000
@@ -78,19 +73,20 @@ class TradingBot:
                 if time_since_last_close < 60:
                     print("The last closed position was less than 1 minute ago. A new order will not be placed.")
                     return
-                
-            
-            stop_loss, take_profit = self.risk_management.calculate_dynamic_risk_management(df, trend)
 
-            print(f"Trend: {trend.upper()}")
+            side = 'Buy' if trade_decision == 'long' else 'Sell'
+            print(f"Order side: {side}")
+
+            # Получаем текущую цену
+            current_price = df['close'].iloc[-1]
+
+            # Вычисляем стоп-лосс и тейк-профит
+            stop_loss, take_profit = self.risk_management.calculate_dynamic_risk_management(df, trade_decision)
+
             print(f"Stop Loss: {stop_loss:.2f}")
             print(f"Take Profit: {take_profit:.2f}")
 
-            side = 'Buy' if trend == 'long' else 'Sell'
-            print(f"Order side: {side}")
-
-            rsi, bollinger_upper, bollinger_middle, bollinger_lower, current_price = Helpers.calculate_and_print_indicators(df, self.indicators)
-
+            # Размещаем ордер
             order_result = self.data_fetcher.place_order(
                 symbol=self.symbol,
                 side=side,
