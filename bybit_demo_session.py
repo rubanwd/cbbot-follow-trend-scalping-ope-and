@@ -98,24 +98,24 @@ class BybitDemoSession:
                     print("Stop-loss is lower than or equal to the limit price for a Sell order. Adjusting stop-loss...")
                     # stop_loss = price * 1.005  # Ensure stop-loss is slightly above the limit price
 
-            order_params = {
-                "category": "linear",
-                "symbol": symbol,
-                "side": side,
-                "orderType": "Limit",
-                "qty": str(qty),  # Convert quantity to string
-                "price": str(price),  # Ensure price is sent as a string
-                "positionIdx": position_idx,  # Use the positionIdx determined above
-            }
-
             # order_params = {
             #     "category": "linear",
             #     "symbol": symbol,
             #     "side": side,
-            #     "orderType": "Market",  # Changed to Market order
+            #     "orderType": "Limit",
             #     "qty": str(qty),  # Convert quantity to string
+            #     "price": str(price),  # Ensure price is sent as a string
             #     "positionIdx": position_idx,  # Use the positionIdx determined above
             # }
+
+            order_params = {
+                "category": "linear",
+                "symbol": symbol,
+                "side": side,
+                "orderType": "Market",  # Changed to Market order
+                "qty": str(qty),  # Convert quantity to string
+                "positionIdx": position_idx,  # Use the positionIdx determined above
+            }
 
             if stop_loss:
                 order_params["stopLoss"] = str(stop_loss)

@@ -1,5 +1,5 @@
 import pandas as pd
-from indicators import Indicators  # Добавьте этот импорт
+from indicators import Indicators  # Add this import
 
 class Strategies:
     def __init__(self):
@@ -16,16 +16,16 @@ class Strategies:
 
     def determine_trend(self, df):
         """
-        Определяет направление позиции ('long', 'short' или None) на основе тренда и значения MACD.
+        Determines the position direction ('long', 'short', or None) based on the trend and MACD value.
 
-        Параметры:
-        df (DataFrame): Данные исторических цен.
+        Parameters:
+        df (DataFrame): Historical price data.
 
-        Возвращает:
-        str: 'long', 'short' или None.
+        Returns:
+        str: 'long', 'short', or None.
         """
 
-        # Вычисляем индикаторы
+        # Calculate indicators
         df['EMA_12'] = self.indicators.calculate_ema(df, span=12)
         df['EMA_26'] = self.indicators.calculate_ema(df, span=26)
         df['RSI'] = self.indicators.calculate_rsi(df, period=14)
@@ -35,71 +35,46 @@ class Strategies:
         df['MACD_Histogram'] = macd_histogram
         df['ADX'] = self.indicators.calculate_adx(df)
 
-        # Удаляем строки с отсутствующими значениями
+        df['EMA_200'] = self.indicators.calculate_ema(df, span=200)
+        df['Bollinger_upper'], df['Bollinger_middle'], df['Bollinger_lower'] = self.indicators.calculate_bollinger_bands(df)
+
+        # Remove rows with missing values
         df.dropna(inplace=True)
 
         if df.empty:
-            print("Недостаточно данных после вычисления индикаторов.")
+            print("Not enough data after calculating indicators.")
             return None
 
-        # Получаем последние значения индикаторов
+        # Get the latest indicator values
         latest = df.iloc[-1]
+        previous = df.iloc[-2]
 
-        # Логика определения тренда
-        bullish_signals = 0
-        bearish_signals = 0
-
-        # EMA пересечения
-        if latest['EMA_12'] > latest['EMA_26']:
-            bullish_signals += 1
-        else:
-            bearish_signals += 1
-
-        # MACD пересечение с сигнальной линией
-        if latest['MACD_Line'] > latest['MACD_Signal']:
-            bullish_signals += 1
-        else:
-            bearish_signals += 1
-
-        # RSI уровни
-        if latest['RSI'] > 60:
-            bullish_signals += 1
-        elif latest['RSI'] < 40:
-            bearish_signals += 1
-
-        # ADX для определения силы тренда
-        if latest['ADX'] < 20:
-            trend = "Консолидация"
-        else:
-            if bullish_signals > bearish_signals:
-                trend = "Бычий тренд"
-            elif bearish_signals > bullish_signals:
-                trend = "Медвежий тренд"
-            else:
-                trend = "Консолидация"
-
-        # Дополнительная логика на основе значения MACD Line
         trade_decision = None
-        macd_hist_value = latest['MACD_Histogram']
 
-        if trend == "Медвежий тренд" and macd_hist_value >= 15:
-            trade_decision = 'short'
-        elif trend == "Бычий тренд" and macd_hist_value <= -15:
+        # Determine trend based on Bollinger Bands middle and EMA 200
+        if latest['Bollinger_middle'] > latest['EMA_200'] and latest['MACD_Histogram'] <= -15 and previous['MACD_Histogram'] < latest['MACD_Histogram']:
             trade_decision = 'long'
+        elif latest['Bollinger_middle'] < latest['EMA_200'] and latest['MACD_Histogram'] >= 15 and previous['MACD_Histogram'] > latest['MACD_Histogram']:
+            trade_decision = 'short'
+        else:
+            trade_decision = None
 
-        # Выводим значения индикаторов и тренд
+        # Output the indicator values and trend
         print(f"EMA_12: {latest['EMA_12']:.2f}")
         print(f"EMA_26: {latest['EMA_26']:.2f}")
         print(f"RSI: {latest['RSI']:.2f}")
-        print(f"MACD Line: {latest['MACD_Line']:.2f}")  # Первое значение MACD
+        print(f"MACD Line: {latest['MACD_Line']:.2f}")
         print(f"MACD Signal: {latest['MACD_Signal']:.2f}")
         print(f"MACD Histogram: {latest['MACD_Histogram']:.2f}")
         print(f"ADX: {latest['ADX']:.2f}")
-        print(f"Определенный тренд: {trend}")
+        print(f"EMA_200: {latest['EMA_200']:.2f}")
+        print(f"Bollinger_middle: {latest['Bollinger_middle']:.2f}")
+
+        print(f"Determined trend: {trade_decision}")
 
         if trade_decision:
-            print(f"Торговое решение: Открыть позицию {trade_decision.upper()}")
+            print(f"Trade decision: Open {trade_decision.upper()} position")
         else:
-            print("Торговое решение: Не открывать позицию")
+            print("Trade decision: Do not open a position")
 
         return trade_decision
