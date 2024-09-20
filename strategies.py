@@ -35,7 +35,8 @@ class Strategies:
         df['MACD_Histogram'] = macd_histogram
         df['ADX'] = self.indicators.calculate_adx(df)
 
-        df['EMA_200'] = self.indicators.calculate_ema(df, span=200)
+        # df['EMA_200'] = self.indicators.calculate_ema(df, span=200)
+        df['EMA_70'] = self.indicators.calculate_ema(df, span=70)
         df['Bollinger_upper'], df['Bollinger_middle'], df['Bollinger_lower'] = self.indicators.calculate_bollinger_bands(df)
 
         # Remove rows with missing values
@@ -48,13 +49,14 @@ class Strategies:
         # Get the latest indicator values
         latest = df.iloc[-1]
         previous = df.iloc[-2]
+        pre_previous = df.iloc[-3]
 
         trade_decision = None
 
-        # Determine trend based on Bollinger Bands middle and EMA 200
-        if latest['Bollinger_middle'] > latest['EMA_200'] and latest['MACD_Histogram'] <= -15 and previous['MACD_Histogram'] < latest['MACD_Histogram']:
+        # Determine trend based on Bollinger Bands middle and EMA 70
+        if latest['Bollinger_middle'] > latest['EMA_70'] and latest['MACD_Histogram'] <= -15 and previous['MACD_Histogram'] < latest['MACD_Histogram']:
             trade_decision = 'long'
-        elif latest['Bollinger_middle'] < latest['EMA_200'] and latest['MACD_Histogram'] >= 15 and previous['MACD_Histogram'] > latest['MACD_Histogram']:
+        elif latest['Bollinger_middle'] < latest['EMA_70'] and latest['MACD_Histogram'] >= 15 and previous['MACD_Histogram'] > latest['MACD_Histogram']:
             trade_decision = 'short'
         else:
             trade_decision = None
@@ -67,7 +69,7 @@ class Strategies:
         print(f"MACD Signal: {latest['MACD_Signal']:.2f}")
         print(f"MACD Histogram: {latest['MACD_Histogram']:.2f}")
         print(f"ADX: {latest['ADX']:.2f}")
-        print(f"EMA_200: {latest['EMA_200']:.2f}")
+        print(f"EMA_70: {latest['EMA_70']:.2f}")
         print(f"Bollinger_middle: {latest['Bollinger_middle']:.2f}")
 
         print(f"Determined trend: {trade_decision}")
