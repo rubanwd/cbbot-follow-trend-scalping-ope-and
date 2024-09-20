@@ -7,7 +7,7 @@ from helpers import Helpers  # Add this import
 from indicators import Indicators
 
 class RiskManagement:
-    def __init__(self, atr_period=14, atr_multiplier=1.5, risk_ratio=1.5):
+    def __init__(self, atr_period=14, atr_multiplier=1.5, risk_ratio=2):
         self.atr_period = atr_period
         self.atr_multiplier = atr_multiplier
         self.risk_ratio = risk_ratio

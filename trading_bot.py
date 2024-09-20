@@ -28,7 +28,7 @@ class TradingBot:
         self.indicators = Indicators()
         self.risk_management = RiskManagement(
             atr_multiplier=float(os.getenv("ATR_MULTIPLIER", 1.0)),
-            risk_ratio=float(os.getenv("RISK_RATIO", 1.0))
+            risk_ratio=float(os.getenv("RISK_RATIO", 2))
         )
         self.symbol = os.getenv("TRADING_SYMBOL", 'BTCUSDT')
         self.quantity = float(os.getenv("TRADE_QUANTITY", 0.03))
