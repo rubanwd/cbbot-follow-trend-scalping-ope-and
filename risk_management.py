@@ -26,7 +26,7 @@ class RiskManagement:
         rsi, bollinger_upper, bollinger_middle, bollinger_lower, current_price = Helpers.calculate_and_print_indicators(df, self.indicators)
         atr = self.calculate_atr(df)
         original_stop_loss_distance = self.atr_multiplier * atr
-        stop_loss_distance = original_stop_loss_distance * 10  # Increase stop loss distance by 4 times
+        stop_loss_distance = original_stop_loss_distance * 20  # Increase stop loss distance by 4 times
         # stop_loss_distance = original_stop_loss_distance
 
         # Calculate take profit using the original stop loss distance
